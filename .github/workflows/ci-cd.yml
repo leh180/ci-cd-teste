@@ -1,0 +1,43 @@
+name: CI/CD - Teste e Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # Job 1: TESTE (Vem da aula passada)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Instalar dependências
+        run: pip install pytest
+
+      - name: Executar testes
+        # (Vou usar o test_sample.py que já existe)
+        run: pytest
+
+  # Job 2: DEPLOY (Só roda se o 'test' passar)
+  deploy:
+    runs-on: ubuntu-latest
+    # 'needs' diz que este job depende do job 'test'
+    needs: test
+    # 'if' diz para só rodar se o job anterior foi um sucesso
+    if: success()
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Publicar no GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
